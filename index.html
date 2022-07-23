@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shake It Plz</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+            crossorigin="anonymous"></script>
+
+    <style>
+        body {
+            font-size: small;
+        }
+    </style>
+
+    <script type="application/javascript">
+        // OLDSCHOOL MODE ON
+
+        function round2(num) {
+            return Math.round((num + Number.EPSILON) * 100) / 100
+        }
+
+        function calcMixing(liquor1, liquor2) {
+            var v1 = liquor1.volume
+            var v2 = liquor2.volume
+
+            var c1 = liquor1.concentration
+            var c2 = liquor2.concentration
+
+            return {
+                volume: v1 + v2,
+                concentration: (c1 * v1 + c2 * v2) / (v1 + v2)
+            };
+        }
+
+        function formatNum(num) {
+            if (Number.isNaN(num)) {
+                return '-'
+            }
+            return round2(num)
+        }
+
+        function formatPercent(num) {
+            if (Number.isNaN(num)) {
+                return '-'
+            }
+            return round2(num) + ' %'
+        }
+
+        function parseFloat(str) {
+            if (str == null) {
+                return 0.0
+            }
+            return Number.parseFloat(str.replace(',', '.'))
+        }
+
+        function checkValidity(element, condition) {
+            if (condition) {
+                element.classList.remove('is-invalid')
+            } else {
+                element.classList.add('is-invalid')
+            }
+        }
+
+        function validateForm1() {
+            var volume1 = document.getElementById('volume1')
+            var volume2 = document.getElementById('volume2')
+
+            var concentration1 = document.getElementById('concentration1')
+            var concentration2 = document.getElementById('concentration2')
+
+            var v1 = parseFloat(volume1.value)
+            var v2 = parseFloat(volume2.value)
+
+            var c1 = parseFloat(concentration1.value)
+            var c2 = parseFloat(concentration2.value)
+
+            checkValidity(volume1, v1 >= 0)
+            checkValidity(volume2, v2 >= 0)
+            checkValidity(concentration1, c1 >= 0 && c1 <= 100)
+            checkValidity(concentration2, c2 >= 0 && c2 <= 100)
+
+            return {
+                volume1: v1,
+                volume2: v2,
+                concentration1: c1,
+                concentration2: c2
+            }
+        }
+
+        function onChangeWidget1() {
+            var form = validateForm1()
+
+            var result = calcMixing(
+                {volume: form.volume1, concentration: form.concentration1},
+                {volume: form.volume2, concentration: form.concentration2}
+            )
+
+            document.getElementById('resultVolume').value = formatNum(result.volume)
+            document.getElementById('resultConcentration').value = formatPercent(result.concentration)
+        }
+
+        function calcConcentration(volume1, concentration1, concentration2, targetConcentration) {
+            return {
+                targetVolume: volume1 * (concentration1 - targetConcentration) / (targetConcentration - concentration2)
+            }
+        }
+
+        function validateForm2() {
+            var volume1 = document.getElementById('volume3')
+            var concentration1 = document.getElementById('concentration3')
+            var concentration2 = document.getElementById('concentration4')
+            var targetConcentration = document.getElementById('resultConcentration2')
+
+            var v1 = parseFloat(volume1.value)
+            var c1 = parseFloat(concentration1.value)
+            var c2 = parseFloat(concentration2.value)
+            var tc = parseFloat(targetConcentration.value)
+
+            checkValidity(volume1, v1 >= 0)
+            checkValidity(concentration1, c1 >= 0 && c1 <= 100)
+            checkValidity(concentration2, c2 >= 0 && c2 <= 100)
+            checkValidity(targetConcentration, tc >= 0 && tc <= 100)
+
+            return {
+                volume1: v1,
+                concentration1: c1,
+                concentration2: c2,
+                targetConcentration: tc
+            }
+        }
+
+        function onChangeWidget2() {
+            var form = validateForm2()
+
+            var result = calcConcentration(
+                form.volume1, form.concentration1, form.concentration2, form.targetConcentration
+            )
+
+            document.getElementById('message').value = null
+            document.getElementById('volume4').value = formatNum(result.targetVolume)
+
+            if (form.targetConcentration === form.concentration1) {
+                document.getElementById('message').value = 'просто возьмите первый раствор'
+            } else if (form.targetConcentration === form.concentration2) {
+                document.getElementById('message').value = 'просто возьмите второй раствор'
+            }
+
+            if (form.targetConcentration < form.concentration1 && form.targetConcentration < form.concentration2) {
+                document.getElementById('message').value = 'нужно разбавлять более слабым раствором'
+            }
+
+            if (form.targetConcentration > form.concentration1 && form.targetConcentration > form.concentration2) {
+                document.getElementById('message').value = 'нужно взять более сильный раствор'
+            }
+        }
+
+        function initOnChange(element, onChangeWidget) {
+            element.addEventListener('input', onChangeWidget)
+            // for IE 8:
+            element.addEventListener('propertychange', onChangeWidget)
+        }
+
+        function init1() {
+            initOnChange(document.getElementById('volume1'), onChangeWidget1)
+            initOnChange(document.getElementById('volume2'), onChangeWidget1)
+            initOnChange(document.getElementById('concentration1'), onChangeWidget1)
+            initOnChange(document.getElementById('concentration2'), onChangeWidget1)
+        }
+
+        function init2() {
+            initOnChange(document.getElementById('volume3'), onChangeWidget2)
+            initOnChange(document.getElementById('concentration3'), onChangeWidget2)
+            initOnChange(document.getElementById('concentration4'), onChangeWidget2)
+            initOnChange(document.getElementById('resultConcentration2'), onChangeWidget2)
+        }
+    </script>
+</head>
+<body class="bg-light bg-gradient">
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Shake It Plz</a>
+    </div>
+</nav>
+
+<div class="container-sm">
+    <div class="row mt-3"></div>
+    <h5>вариант 1. результат смешения двух растворов</h5>
+
+    <div class="row rounded bg-white">
+        <div class="col">
+            <label for="volume1">объем раствора #1</label>
+            <input id="volume1" type="number" class="form-control align-bottom"/>
+        </div>
+        <div class="col">
+            <label for="concentration1">концентрация #1 (проц.)</label>
+            <input id="concentration1" type="number" class="form-control align-bottom"/>
+        </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row rounded bg-white">
+        <div class="col-6 align-bottom">
+            <label for="volume2">объем раствора #2</label>
+            <input id="volume2" type="number" class="form-control"/>
+        </div>
+        <div class="col-6 align-bottom">
+            <label for="concentration2">концентрация #2 (проц.)</label>
+            <input id="concentration2" type="number" class="form-control align-bottom"/>
+        </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row rounded bg-white">
+        <div class="col-6">
+            <label for="resultVolume">в результате получится</label>
+            <input id="resultVolume" disabled type="text" class="form-control" placeholder="-"/>
+        </div>
+        <div class="col-6">
+            <label for="resultConcentration"></label>
+            <input id="resultConcentration" disabled type="text" class="form-control align-bottom" placeholder="-"/>
+        </div>
+    </div>
+</div>
+
+<div class="container-sm mt-5"></div>
+
+<div class="container-sm">
+    <h5>вариант 2. получение нужной концентрации</h5>
+
+    <div class="row rounded bg-white">
+        <div class="col">
+            <label for="volume3">объем раствора #1</label>
+            <input id="volume3" type="number" class="form-control align-bottom"/>
+        </div>
+        <div class="col">
+            <label for="concentration3">концентрация #1 (проц.)</label>
+            <input id="concentration3" type="number" class="form-control align-bottom"/>
+        </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row rounded bg-white">
+        <div class="col">
+            <label for="volume4">какой объем #2 надо добавить?</label>
+            <input id="volume4" type="text" disabled class="form-control" placeholder="-"/>
+        </div>
+        <div class="col">
+            <label for="concentration4">при концентрации #2 (проц.)</label>
+            <input id="concentration4" type="number" class="form-control"/>
+        </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row rounded bg-white">
+        <div class="col">
+            <label for="resultConcentration2">чтобы получилась концентрация:</label>
+            <input id="resultConcentration2" type="number" class="form-control"/>
+        </div>
+    </div>
+    <div class="row rounded bg-white">
+        <div class="col">
+            <label for="message"></label>
+            <input id="message" type="text" disabled class="form-control"/>
+        </div>
+    </div>
+</div>
+
+<script type="application/javascript">
+    init1()
+    init2()
+</script>
+</body>
+</html>
