@@ -159,6 +159,19 @@
             }
         }
 
+        function tryReverse() {
+            var concentration3 = document.getElementById('concentration3')
+            var concentration4 = document.getElementById('concentration4')
+
+            var c3 = concentration3.value
+            var c4 = concentration4.value
+
+            document.getElementById('concentration3').value = c4
+            document.getElementById('concentration4').value = c3
+
+            onChangeWidget2()
+        }
+
         function initOnChange(element, onChangeWidget) {
             element.addEventListener('input', onChangeWidget)
             // for IE 8:
@@ -177,6 +190,8 @@
             initOnChange(document.getElementById('concentration3'), onChangeWidget2)
             initOnChange(document.getElementById('concentration4'), onChangeWidget2)
             initOnChange(document.getElementById('resultConcentration2'), onChangeWidget2)
+
+            document.getElementById('tryReverseButton').addEventListener('click', tryReverse)
         }
     </script>
 </head>
@@ -266,11 +281,24 @@
             <input id="resultConcentration2" type="number" class="form-control"/>
         </div>
     </div>
-    <div class="row rounded bg-white">
+    <div class="row bg-white">
         <div class="col">
             <label for="message"></label>
             <input id="message" type="text" disabled class="form-control"/>
         </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-3">
+            <button id="tryReverseButton" type="button" class="btn btn-primary">
+                попробовать наоборот
+            </button>
+        </div>
+    </div>
+    <div class="row bg-white">
+        <div class="col-12">&nbsp;</div>
     </div>
 </div>
 
